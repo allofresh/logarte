@@ -1,3 +1,7 @@
+## 1.2.0
+
+* Add feature `copy as cURL`
+
 ## 1.1.1
 
 * Fix export `logarte_network_filter.dart` and `logarte_search_filter.dart`
