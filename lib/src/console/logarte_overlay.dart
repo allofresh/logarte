@@ -41,6 +41,7 @@ class LogarteOverlay extends StatelessWidget {
     );
 
     Future.delayed(kThemeAnimationDuration, () {
+      if (!context.mounted) return;
       final overlay = Overlay.of(context);
       overlay.insert(_currentEntry!);
       _isAttached = true;
