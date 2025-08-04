@@ -1,3 +1,8 @@
+## 1.3.0
+
+* Add feature `Search and Highlight content in Network Log Details Screen`
+* Allow back using device button when overalay button is not visible
+
 ## 1.2.0
 
 * Add feature `copy as cURL`
