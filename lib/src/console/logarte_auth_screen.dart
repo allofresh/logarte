@@ -44,8 +44,8 @@ class _LogarteAuthScreenState extends State<LogarteAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return LogarteThemeWrapper(
-      child: WillPopScope(
-        onWillPop: () => Future.value(false),
+      child: PopScope(
+        canPop: !widget.instance.isOverlayAttached,
         child: _isLoggedIn || _noPassword
             ? LogarteDashboardScreen(
                 widget.instance,

@@ -4,7 +4,6 @@ import 'package:logarte/src/console/logarte_entry_item.dart';
 import 'package:logarte/src/console/logarte_fab_state.dart';
 import 'package:logarte/src/console/logarte_filter_setting.dart';
 import 'package:logarte/src/console/logarte_theme_wrapper.dart';
-import 'package:logarte/src/models/logarte_search_filter.dart';
 
 class LogarteDashboardScreen extends StatefulWidget {
   final Logarte instance;

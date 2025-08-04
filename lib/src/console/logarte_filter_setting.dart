@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logarte/logarte.dart';
 
-import '../models/logarte_search_filter.dart';
-
 class LogarteFilterSetting extends StatefulWidget {
   final Logarte logarte;
 

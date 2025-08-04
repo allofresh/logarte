@@ -7,7 +7,7 @@ import 'package:logarte/src/extensions/string_extensions.dart';
 
 enum MenuItem { copy, copyCurl }
 
-class NetworkLogEntryDetailsScreen extends StatelessWidget {
+class NetworkLogEntryDetailsScreen extends StatefulWidget {
   final NetworkLogarteEntry entry;
   final Logarte instance;
 
@@ -17,14 +17,24 @@ class NetworkLogEntryDetailsScreen extends StatelessWidget {
     required this.instance,
   }) : super(key: key);
 
+  @override
+  State<NetworkLogEntryDetailsScreen> createState() =>
+      _NetworkLogEntryDetailsScreenState();
+}
+
+class _NetworkLogEntryDetailsScreenState
+    extends State<NetworkLogEntryDetailsScreen> {
+  final TextEditingController _controller = TextEditingController();
+  String _searchText = '';
+
   void handleClick(BuildContext context, MenuItem item) {
     switch (item) {
       case MenuItem.copy:
-          final text = entry.toString();
-          text.copyToClipboard(context);
+        final text = widget.entry.toString();
+        text.copyToClipboard(context);
         break;
       case MenuItem.copyCurl:
-        final cmd = entry.toCurlCommand();
+        final cmd = widget.entry.toCurlCommand();
         cmd.copyToClipboard(context);
         break;
     }
@@ -39,10 +49,21 @@ class NetworkLogEntryDetailsScreen extends StatelessWidget {
             onPressed: Navigator.of(context).pop,
             icon: const Icon(Icons.arrow_back),
           ),
-          title: Text(
-            '${entry.asReadableDuration}, ${entry.response.body.toString().asReadableSize}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          title: TextField(
+            controller: _controller,
+            onChanged: (value) {
+              setState(() {
+                _searchText = value;
+              });
+            },
+            decoration: InputDecoration(
+              hintText: 'Search',
+              filled: true,
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: _controller.clear,
+              ),
+            ),
           ),
           centerTitle: false,
           actions: [
@@ -50,8 +71,8 @@ class NetworkLogEntryDetailsScreen extends StatelessWidget {
               tooltip: 'Share',
               icon: const Icon(Icons.share),
               onPressed: () {
-                final text = entry.toString();
-                instance.onShare?.call(text);
+                final text = widget.entry.toString();
+                widget.instance.onShare?.call(text);
               },
             ),
             PopupMenuButton<MenuItem>(
@@ -90,23 +111,26 @@ class NetworkLogEntryDetailsScreen extends StatelessWidget {
                         children: [
                           SelectableCopiableTile(
                             title: 'METHOD',
-                            subtitle: entry.request.method,
+                            subtitle: widget.entry.request.method,
                           ),
                           const Divider(height: 0.0),
                           SelectableCopiableTile(
                             title: 'URL',
-                            subtitle: entry.request.url,
+                            subtitle: widget.entry.request.url,
+                            searchText: _searchText,
                           ),
                           const Divider(height: 0.0),
                           SelectableCopiableTile(
                             title: 'HEADERS',
-                            subtitle: entry.request.headers.prettyJson,
+                            subtitle: widget.entry.request.headers.prettyJson,
+                            searchText: _searchText,
                           ),
-                          if (entry.request.method != 'GET') ...[
+                          if (widget.entry.request.method != 'GET') ...[
                             const Divider(height: 0.0),
                             SelectableCopiableTile(
                               title: 'BODY',
-                              subtitle: entry.request.body.prettyJson,
+                              subtitle: widget.entry.request.body.prettyJson,
+                              searchText: _searchText,
                             ),
                           ],
                         ],
@@ -117,17 +141,20 @@ class NetworkLogEntryDetailsScreen extends StatelessWidget {
                         children: [
                           SelectableCopiableTile(
                             title: 'STATUS CODE',
-                            subtitle: entry.response.statusCode.toString(),
+                            subtitle:
+                                widget.entry.response.statusCode.toString(),
                           ),
                           const Divider(height: 0.0),
                           SelectableCopiableTile(
                             title: 'HEADERS',
-                            subtitle: entry.response.headers.prettyJson,
+                            subtitle: widget.entry.response.headers.prettyJson,
+                            searchText: _searchText,
                           ),
                           const Divider(height: 0.0),
                           SelectableCopiableTile(
                             title: 'BODY',
-                            subtitle: entry.response.body.prettyJson,
+                            subtitle: widget.entry.response.body.prettyJson,
+                            searchText: _searchText,
                           ),
                         ],
                       ),
@@ -146,10 +173,12 @@ class NetworkLogEntryDetailsScreen extends StatelessWidget {
 class SelectableCopiableTile extends StatelessWidget {
   final String title;
   final String subtitle;
+  final String searchText;
 
   const SelectableCopiableTile({
     required this.title,
     required this.subtitle,
+    this.searchText = '',
     Key? key,
   }) : super(key: key);
 
@@ -166,13 +195,56 @@ class SelectableCopiableTile extends StatelessWidget {
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4.0),
-        child: SelectableText(
-          subtitle,
+        child: SelectableText.rich(
+          TextSpan(
+            children: _buildHighlightedTextSpans(),
+          ),
           onTap: () => _copyToClipboard(context),
         ),
       ),
       // trailing: const Icon(Icons.copy),
     );
+  }
+
+  List<TextSpan> _buildHighlightedTextSpans() {
+    if (searchText.isEmpty) {
+      return [TextSpan(text: subtitle)];
+    }
+
+    final List<TextSpan> spans = [];
+    final String lowerSubtitle = subtitle.toLowerCase();
+    final String lowerSearchText = searchText.toLowerCase();
+
+    int currentIndex = 0;
+
+    while (currentIndex < subtitle.length) {
+      final int matchIndex =
+          lowerSubtitle.indexOf(lowerSearchText, currentIndex);
+
+      if (matchIndex == -1) {
+        // No more matches, add remaining text
+        spans.add(TextSpan(text: subtitle.substring(currentIndex)));
+        break;
+      }
+
+      // Add text before the match
+      if (matchIndex > currentIndex) {
+        spans.add(TextSpan(text: subtitle.substring(currentIndex, matchIndex)));
+      }
+
+      // Add the highlighted match
+      spans.add(TextSpan(
+        text: subtitle.substring(matchIndex, matchIndex + searchText.length),
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          backgroundColor: Colors.yellow,
+        ),
+      ));
+
+      currentIndex = matchIndex + searchText.length;
+    }
+
+    return spans;
   }
 
   Future<void> _copyToClipboard(BuildContext context) {
