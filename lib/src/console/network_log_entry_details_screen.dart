@@ -235,7 +235,10 @@ class SelectableCopiableTile extends StatelessWidget {
       // Add the highlighted match
       spans.add(TextSpan(
         text: subtitle.substring(matchIndex, matchIndex + searchText.length),
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          backgroundColor: Colors.yellow,
+        ),
       ));
 
       currentIndex = matchIndex + searchText.length;
