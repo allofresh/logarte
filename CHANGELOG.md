@@ -1,3 +1,7 @@
+## 1.3.1
+
+* Add support for `FormData` on POST with multipart payload body
+
 ## 1.3.0
 
 * Add feature `Search and Highlight content in Network Log Details Screen`
